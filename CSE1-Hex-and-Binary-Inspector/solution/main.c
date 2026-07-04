@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 static void print_binary16(uint16_t value) {
 	for (int bit = 15; bit >= 0; --bit) {
 		putchar((value & (uint16_t)(1u << bit)) ? '1' : '0');

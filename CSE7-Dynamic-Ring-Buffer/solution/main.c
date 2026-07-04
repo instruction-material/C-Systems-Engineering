@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 struct RingBuffer {
 	int *data;
 	size_t capacity;

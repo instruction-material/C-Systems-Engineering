@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 struct Packet {
 	uint8_t version;
 	uint8_t channel;

@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <string.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 enum { RECORD_SIZE = 8 };
 
 static void write_u32_le(uint8_t *buffer, uint32_t value) {

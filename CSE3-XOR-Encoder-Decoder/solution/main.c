@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 static void dump_bytes(const uint8_t *bytes, size_t count) {
 	for (size_t i = 0; i < count; ++i) {
 		printf("%02X ", bytes[i]);

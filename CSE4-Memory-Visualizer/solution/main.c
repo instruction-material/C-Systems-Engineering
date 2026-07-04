@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 static char static_banner[] = "STAT";
 
 struct FrameRecord {

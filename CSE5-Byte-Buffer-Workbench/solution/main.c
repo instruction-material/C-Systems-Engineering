@@ -2,6 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 static void safe_copy(char *dest, size_t capacity, const char *src) {
 	if (capacity == 0) {
 		return;

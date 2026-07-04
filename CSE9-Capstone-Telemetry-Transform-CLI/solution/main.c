@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 static bool write_sample_input(const char *path) {
 	FILE *file = fopen(path, "w");
 	if (file == NULL) {

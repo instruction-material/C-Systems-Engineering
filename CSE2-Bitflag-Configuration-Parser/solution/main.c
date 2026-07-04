@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/****************
+*   SOLUTION   *
+****************/
+
 enum {
 	FLAG_LOGGING = 1u << 0,
 	FLAG_CHECKSUM = 1u << 1,
