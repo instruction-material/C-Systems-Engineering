@@ -1,0 +1,27 @@
+cmake_minimum_required(VERSION 3.20)
+project(cse1_link_solution C)
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
+option(CSE_SANITIZERS "Build this pack with address/undefined diagnostics" OFF)
+
+add_executable(cse1_link_solution main.c reading.c labels.c)
+add_executable(cse1_link_solution_tests tests.c reading.c labels.c)
+
+foreach(target cse1_link_solution cse1_link_solution_tests)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+        target_compile_options(${target} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+        if(CSE_SANITIZERS)
+            target_compile_options(${target} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+            target_link_options(${target} PRIVATE -fsanitize=address,undefined)
+        endif()
+    else()
+        message(FATAL_ERROR "Use a Clang or GCC C17 toolchain for this pack")
+    endif()
+endforeach()
+
+# Unfinished learner checks are useful locally but are not a root acceptance gate.
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR OR TRUE)
+    enable_testing()
+    add_test(NAME cse1_link_solution_contract COMMAND cse1_link_solution_tests)
+endif()

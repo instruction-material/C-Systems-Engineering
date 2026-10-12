@@ -1,26 +1,15 @@
+#include "reading.h"
 #include <stdio.h>
-#include <string.h>
-
-typedef struct {
-    char label[32];
-    int value;
-} Record;
-
-int summarize_records(const Record* records, int count) {
-    int total = 0;
-    for (int i = 0; i < count; i++) {
-        // TODO: fold the current record into the total in a safer, clearer way.
-        (void)records;
-    }
-    return total;
-}
 
 int main(void) {
-    Record records[] = {
-        {"alpha", 4},
-        {"beta", 9},
-        {"gamma", 15},
-    };
-    printf("summary=%d\n", summarize_records(records, 3));
+    const int readings[] = {-1, 0, 50, 100, 101};
+    for (size_t i = 0; i < sizeof(readings) / sizeof(readings[0]); ++i) {
+        const char* label = reading_label(classify_reading(readings[i]));
+        if (label == NULL) {
+            fputs("label implementation is unfinished\n", stderr);
+            return 78;
+        }
+        printf("%d => %s\n", readings[i], label);
+    }
     return 0;
 }

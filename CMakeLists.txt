@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(CSystemsEngineering C)
 
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
@@ -96,3 +96,9 @@ add_cse_lab(
 	cse9_capstone_transform_solution
 	"CSE9-Capstone-Telemetry-Transform-CLI/solution/main.c"
 )
+
+include(CTest)
+add_subdirectory(CSE-05-cse0-setup-and-tooling/starter)
+add_subdirectory(CSE-05-cse0-setup-and-tooling/solution)
+add_subdirectory(CSE-06-unit-1-why-c-for-systems-work/starter)
+add_subdirectory(CSE-06-unit-1-why-c-for-systems-work/solution)

@@ -1,53 +1,42 @@
 # C Systems Engineering
 
-This folder is structured as the future
-`instruction-material/C-Systems-Engineering` repository.
+These source packs support the C Systems Engineering course. Each project has
+separate learner (`starter`) and reference (`solution`) source.
 
-The materials follow the core project sequence used by the site course:
+The required opening projects are:
 
-1. `CSE1-Hex-and-Binary-Inspector`
-2. `CSE2-Bitflag-Configuration-Parser`
-3. `CSE3-XOR-Encoder-Decoder`
-4. `CSE4-Memory-Visualizer`
-5. `CSE5-Byte-Buffer-Workbench`
-6. `CSE6-Packet-Serializer-Deserializer`
-7. `CSE7-Dynamic-Ring-Buffer`
-8. `CSE8-Fixed-Size-Log-File-Reader`
-9. `CSE9-Capstone-Telemetry-Transform-CLI`
+1. `CSE-05-cse0-setup-and-tooling`: C17 configure/build/test, diagnostics, and
+   debugger evidence using a small reading classifier.
+2. `CSE-06-unit-1-why-c-for-systems-work`: the same behavior deliberately split
+   across translation units, with missing and duplicate symbol experiments.
 
-Each project contains:
+Each opening role has an independent CMake build and documented completion
+contract. Untouched learners compile, then fail their semantic checks until the
+named task is completed. Reference tests pass. The later numbered projects
+cover representation, bits, memory, buffers, parsing, dynamic allocation, logs,
+and telemetry. Their per-pack behavior requires separate verification; the
+opening-project tests do not certify those later packs.
 
-- `starter/` with a guided scaffold and TODO-style follow-up work
-- `solution/` with a complete reference implementation
-- `README.md` describing the engineering goal and how it fits the course
+## Root build
 
-## Tooling
+A Clang or GCC compiler and CMake 3.20 or newer are required. The repository
+build now requests portable C17. From this directory:
 
-Preferred IDEs:
+```sh
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
 
-- `CLion`
-- `VS Code`
+Root CTest accepts only the two complete opening references. An opening
+learner's own CTest remains an intentionally failing check until completed.
+For source-contract verification, including completed learner attempts,
+controlled compiler/link failures, and the isolated diagnostic fixture:
 
-Expected local toolchain:
+```sh
+python3 test/native_opening_contracts.py
+```
 
-- `clang` or `gcc`
-- `cmake`
-- `lldb` or `gdb`
-
-The projects standardize on a simple CMake layout so students can move from
-single-file exploration toward a more repeatable systems workflow.
-
-## Local Validation Workflow
-
-From this folder:
-
-1. `cmake -S . -B build`
-2. `cmake --build build`
-3. Run the generated starter or solution binaries from `build/`
-
-## Teaching Notes
-
-- Pair every representation lesson with printed bytes.
-- Ask students to explain why the code works, not only what it prints.
-- Prefer small, observable utilities over oversized “framework” projects.
-
+This command uses an installed compiler and CMake. It installs nothing and
+cleans its temporary builds. Each project README provides the independent
+student sequence and expected output.

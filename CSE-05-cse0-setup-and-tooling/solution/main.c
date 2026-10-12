@@ -1,70 +1,27 @@
+#include "reading.h"
 #include <stdio.h>
-#include <string.h>
 
-/*****************
-*   CONSTANTS   *
-*****************/
-
-#define LABEL_CAPACITY 32U
-#define BETA_MULTIPLIER 2
-#define SAMPLE_RECORD_COUNT 3
-
-/************
-*   TYPES   *
-************/
-
-// Store one labeled integer record
-struct record_t {
-    char label[LABEL_CAPACITY];
-    int value;
-};
-
-/*****************
-*   FUNCTIONS   *
-*****************/
-
-/**
- * @brief Summarize records with a special beta weighting rule
- *
- * @param records Records to summarize
- *
- * @param count Number of records in the array
- *
- * @return Weighted record total
- */
-int summarize_records(const struct record_t* records, int count) {
-    int total = 0;
-
-    // Process each record exactly once
-    for (int record_index = 0; record_index < count; record_index++) {
-        const struct record_t* current_record = &records[record_index];
-
-        // Apply the beta-specific weighting rule
-        if (strncmp(current_record->label, "beta",
-                    sizeof(current_record->label)) == 0) {
-            total += current_record->value * BETA_MULTIPLIER;
-        }
-        // Preserve the original value for all other labels
-        else {
-            total += current_record->value;
-        }
+int classify_reading(int value) {
+    if (value < 0) {
+        return -1;
     }
-
-    return total;
-}
-
-/**
- * @brief Print the summary for the sample records
- *
- * @return Program exit status
- */
-int main(void) {
-    const struct record_t records[SAMPLE_RECORD_COUNT] = {
-        {"alpha", 4},
-        {"beta", 9},
-        {"gamma", 15},
-    };
-
-    printf("summary=%d\n", summarize_records(records, SAMPLE_RECORD_COUNT));
+    if (value > 100) {
+        return 1;
+    }
     return 0;
 }
+
+#ifndef CSE_NO_MAIN
+int main(void) {
+    const int readings[] = {-1, 0, 50, 100, 101};
+    const size_t count = sizeof(readings) / sizeof(readings[0]);
+    if (classify_reading(-1) != -1 || classify_reading(101) != 1) {
+        fputs("classification is unfinished or incorrect\n", stderr);
+        return 78;
+    }
+    for (size_t i = 0; i < count; ++i) {
+        printf("%d => %d\n", readings[i], classify_reading(readings[i]));
+    }
+    return 0;
+}
+#endif
