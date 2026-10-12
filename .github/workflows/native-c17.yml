@@ -16,6 +16,15 @@ jobs:
         compiler: [clang, gcc]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Ensure debugger and binary inspection prerequisites
+        run: |
+          if ! command -v gdb || ! command -v nm || ! command -v objdump; then
+            sudo apt-get update
+            sudo apt-get install --no-install-recommends -y gdb binutils
+          fi
+          gdb --version
+          nm --version
+          objdump --version
       - name: Verify native contracts and intentional failures
         env:
           CSE_CC: ${{ matrix.compiler }}

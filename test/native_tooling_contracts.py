@@ -18,7 +18,7 @@ assert CC, "An installed Clang or GCC compiler is required"
 NM = shutil.which("nm")
 OBJDUMP = shutil.which("objdump") or shutil.which("llvm-objdump")
 DEBUGGER = shutil.which("gdb") or shutil.which("lldb")
-assert NM and OBJDUMP and DEBUGGER, "Installed symbol/disassembly tools and GDB or LLDB are required"
+assert NM and OBJDUMP and DEBUGGER, f"Installed tools required: nm={NM}, objdump={OBJDUMP}, debugger={DEBUGGER}"
 os.environ["UBSAN_OPTIONS"] = "halt_on_error=1:print_stacktrace=1"
 TASK = os.environ.get("CSE_PARENT_TASK_ID", "c17-tooling-native-contracts")
 LOG = Path(os.environ.get("CSE_VALIDATION_LOG", ROOT / "build/native-tooling-processes.jsonl"))
