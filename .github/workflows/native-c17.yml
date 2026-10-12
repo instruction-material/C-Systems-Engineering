@@ -1,4 +1,4 @@
-name: Opening C17 source contracts
+name: Required C17 source contracts
 on:
   push:
     branches: [main]
@@ -7,7 +7,7 @@ permissions:
   contents: read
 jobs:
   native:
-    name: C17 opening packs (${{ matrix.compiler }})
+    name: C17 required packs (${{ matrix.compiler }})
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     strategy:
@@ -20,4 +20,6 @@ jobs:
         env:
           CSE_CC: ${{ matrix.compiler }}
           CSE_PARENT_TASK_ID: c17-source-${{ github.run_id }}-${{ matrix.compiler }}
-        run: python3 test/native_opening_contracts.py
+        run: |
+          python3 test/native_opening_contracts.py
+          python3 test/native_dispatch_contracts.py
