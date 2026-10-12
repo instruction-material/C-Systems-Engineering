@@ -24,3 +24,4 @@ jobs:
           python3 test/native_opening_contracts.py
           python3 test/native_dispatch_contracts.py
           python3 test/native_math_contracts.py
+          python3 test/native_tooling_contracts.py
