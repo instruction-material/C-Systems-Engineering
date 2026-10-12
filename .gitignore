@@ -1,3 +1,10 @@
 build/
 cmake-build-debug/
-
+build-*/
+*.o
+main.i
+main.s
+linked-reading
+missing-label-definition
+duplicate-label-definition
+build-unsafe-probe
