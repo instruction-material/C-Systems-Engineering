@@ -11,6 +11,8 @@ The required projects with explicit native contracts are:
    across translation units, with missing and duplicate symbol experiments.
 3. `CSE-07-unit-8-function-pointers-and-dispatch`: caller-supplied command
    tables, exact handler selection, indirect calls, and observable state rules.
+4. `CSE-08-unit-10-engineering-math-in-code`: scaled unit conversions, explicit
+   rounding, widened arithmetic, and checked output ranges.
 
 Each role has an independent CMake build and documented completion contract.
 Untouched learners compile, then fail their semantic checks until the named
@@ -30,7 +32,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Root CTest accepts only the three complete references listed above. A learner's
+Root CTest accepts only the four complete references listed above. A learner's
 own CTest is intentionally failing until completed. For source-contract
 verification, including independent learner completions and deliberate
 regressions, use:
@@ -38,6 +40,7 @@ regressions, use:
 ```sh
 python3 test/native_opening_contracts.py
 python3 test/native_dispatch_contracts.py
+python3 test/native_math_contracts.py
 ```
 
 These commands use an installed compiler and CMake, install nothing, and clean
