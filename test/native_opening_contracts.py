@@ -151,9 +151,10 @@ with tempfile.TemporaryDirectory(prefix="c17-opening-") as directory:
     assert "100% tests passed" in text, text
     inventory, _ = run(["ctest", "--test-dir", build, "--show-only=json-v1"], ROOT)
     assert {row["name"] for row in json.loads(inventory)["tests"]} == {
-        "cse0_solution_contract", "cse1_link_solution_contract"
+        "cse0_solution_contract", "cse1_link_solution_contract",
+        "cse8_dispatch_solution_contract"
     }, inventory
 
 print(json.dumps(dict(event="verified-c17-opening-contracts", compiler=CC,
-                      **COUNTS, rootReferenceTests=2,
+                      **COUNTS, rootReferenceTests=3,
                       temporaryBuildCleanup=True, log=str(LOG))))
