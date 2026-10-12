@@ -109,11 +109,12 @@ with tempfile.TemporaryDirectory(prefix="c17-tooling-") as directory:
     run(["cmake", "--build", build, "--parallel", "2"], ROOT,
         expected="failure", contains="duration_to_ticks")
     counts["linkDiagnoses"] += 1
-    implementation = list(build.rglob("engineering_math.c.o"))
-    driver = list(build.rglob("main.c.o"))
-    assert len(implementation) == len(driver) == 1
-    defined = run([NM, implementation[0]], ROOT)
-    requested = run([NM, driver[0]], ROOT)
+    target_objects = build / "CMakeFiles/cse11_tooling_starter.dir"
+    implementation = target_objects / "engineering_math.c.o"
+    driver = target_objects / "main.c.o"
+    assert implementation.is_file() and driver.is_file(), target_objects
+    defined = run([NM, implementation], ROOT)
+    requested = run([NM, driver], ROOT)
     assert re.search(r"\bT\s+_?duration_to_tick\s*$", defined, re.M), defined
     assert re.search(r"\bU\s+_?duration_to_ticks\s*$", requested, re.M), requested
     counts["objectSymbolInspections"] += 1
