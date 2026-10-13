@@ -1,83 +1,45 @@
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+#include "ring.h"
 #include <stdio.h>
-#include <stdlib.h>
-
-struct RingBuffer {
-    int* data;
-    size_t capacity;
-    size_t head;
-    size_t count;
-};
-
-static bool init_ring_buffer(struct RingBuffer* buffer, size_t capacity) {
-    buffer->data = calloc(capacity, sizeof(int));
-    if (buffer->data == NULL) {
-        return false;
+static int operation_error(enum RingResult result) {
+    if (result == RING_UNFINISHED) {
+        fprintf(stderr, "complete ring_init, ring_push and ring_pop in ring.c\n");
+        return 78;
     }
-    buffer->capacity = capacity;
-    buffer->head = 0;
-    buffer->count = 0;
-    return true;
+    fprintf(stderr,
+            "ring operation rejected: state, empty queue or allocation failure\n");
+    return 1;
 }
-
-static void destroy_ring_buffer(struct RingBuffer* buffer) {
-    free(buffer->data);
-    buffer->data = NULL;
-    buffer->capacity = 0;
-    buffer->head = 0;
-    buffer->count = 0;
-}
-
-static bool push_ring_buffer(struct RingBuffer* buffer, int value) {
-    if (buffer->count == buffer->capacity) {
-        return false;
+int main(int argc, char **argv) {
+    (void)argv;
+    if (argc != 1) {
+        fprintf(stderr, "usage: ring-buffer (no arguments)\n");
+        return 2;
     }
-
-    size_t tail = (buffer->head + buffer->count) % buffer->capacity;
-    buffer->data[tail] = value;
-    buffer->count += 1;
-    return true;
-}
-
-static bool pop_ring_buffer(struct RingBuffer* buffer, int* out_value) {
-    if (buffer->count == 0) {
-        return false;
-    }
-
-    *out_value = buffer->data[buffer->head];
-    buffer->head = (buffer->head + 1) % buffer->capacity;
-    buffer->count -= 1;
-    return true;
-}
-
-int main(void) {
-    struct RingBuffer buffer;
+    struct RingBuffer buffer = {0};
     int popped = 0;
-
-    if (!init_ring_buffer(&buffer, 4u)) {
-        fprintf(stderr, "failed to allocate ring buffer\n");
-        return 1;
+    enum RingResult result = ring_init(&buffer, 4);
+    if (result != RING_OK)
+        return operation_error(result);
+    for (int value = 10; value <= 60; value += 10) {
+        result = ring_push(&buffer, value);
+        if (result != RING_OK) {
+            ring_destroy(&buffer);
+            return operation_error(result);
+        }
     }
-
-    push_ring_buffer(&buffer, 10);
-    push_ring_buffer(&buffer, 20);
-    push_ring_buffer(&buffer, 30);
-    pop_ring_buffer(&buffer, &popped);
-    push_ring_buffer(&buffer, 40);
-
-    printf("dynamic ring buffer (starter)\n");
-    printf("count    : %zu\n", buffer.count);
-    printf("capacity : %zu\n", buffer.capacity);
-    printf("popped   : %d\n", popped);
-
-    /* TODO:
-	 * 1. Add a resize path instead of failing when the buffer fills.
-	 * 2. Print the buffer contents in logical queue order.
-	 * 3. Explain why destroy_ring_buffer owns the final free.
-	 */
-
-    destroy_ring_buffer(&buffer);
-    return 0;
+    result = ring_pop(&buffer, &popped);
+    if (result == RING_OK)
+        result = ring_push(&buffer, 70);
+    if (result != RING_OK) {
+        ring_destroy(&buffer);
+        return operation_error(result);
+    }
+    printf("dynamic ring buffer\ncount: %zu\ncapacity: %zu\nhead: %zu\npopped: "
+           "%d\ncontents: ",
+           buffer.count, buffer.capacity, buffer.head, popped);
+    for (size_t i = 0; i < buffer.count; ++i)
+        printf("%d ", buffer.data[ring_index(&buffer, i)]);
+    putchar('\n');
+    ring_destroy(&buffer);
+    return fflush(stdout) == 0 ? 0 : 1;
 }

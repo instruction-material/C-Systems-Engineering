@@ -156,9 +156,15 @@ with tempfile.TemporaryDirectory(prefix="c17-opening-") as directory:
         "cse11_tooling_solution_contract",
         "cse1_hex_binary_inspector_solution_contract",
         "cse2_bitflag_parser_solution_contract",
-        "cse3_xor_encoder_solution_contract"
+        "cse3_xor_encoder_solution_contract",
+        "cse4_memory_visualizer_solution_contracts",
+        "cse5_byte_buffer_workbench_solution_contracts",
+        "cse6_packet_serializer_solution_contracts",
+        "cse7_dynamic_ring_buffer_solution_contracts",
+        "cse8_fixed_log_reader_solution_contracts",
+        "cse9_capstone_transform_solution_contracts"
     }, inventory
 
 print(json.dumps(dict(event="verified-c17-opening-contracts", compiler=CC,
-                      **COUNTS, rootReferenceTests=8,
+                      **COUNTS, rootReferenceTests=14,
                       temporaryBuildCleanup=True, log=str(LOG))))

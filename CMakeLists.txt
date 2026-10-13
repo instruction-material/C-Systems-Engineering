@@ -5,72 +5,19 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-function(add_cse_lab target source_file)
-	add_executable(${target} ${source_file})
-	target_compile_options(
-		${target}
-		PRIVATE
-			-Wall
-			-Wextra
-			-Wpedantic
-	)
-endfunction()
-
-add_cse_lab(
-	cse4_memory_visualizer_starter
-	"CSE4-Memory-Visualizer/starter/main.c"
-)
-add_cse_lab(
-	cse4_memory_visualizer_solution
-	"CSE4-Memory-Visualizer/solution/main.c"
-)
-
-add_cse_lab(
-	cse5_byte_buffer_workbench_starter
-	"CSE5-Byte-Buffer-Workbench/starter/main.c"
-)
-add_cse_lab(
-	cse5_byte_buffer_workbench_solution
-	"CSE5-Byte-Buffer-Workbench/solution/main.c"
-)
-
-add_cse_lab(
-	cse6_packet_serializer_starter
-	"CSE6-Packet-Serializer-Deserializer/starter/main.c"
-)
-add_cse_lab(
-	cse6_packet_serializer_solution
-	"CSE6-Packet-Serializer-Deserializer/solution/main.c"
-)
-
-add_cse_lab(
-	cse7_dynamic_ring_buffer_starter
-	"CSE7-Dynamic-Ring-Buffer/starter/main.c"
-)
-add_cse_lab(
-	cse7_dynamic_ring_buffer_solution
-	"CSE7-Dynamic-Ring-Buffer/solution/main.c"
-)
-
-add_cse_lab(
-	cse8_fixed_log_reader_starter
-	"CSE8-Fixed-Size-Log-File-Reader/starter/main.c"
-)
-add_cse_lab(
-	cse8_fixed_log_reader_solution
-	"CSE8-Fixed-Size-Log-File-Reader/solution/main.c"
-)
-
-add_cse_lab(
-	cse9_capstone_transform_starter
-	"CSE9-Capstone-Telemetry-Transform-CLI/starter/main.c"
-)
-add_cse_lab(
-	cse9_capstone_transform_solution
-	"CSE9-Capstone-Telemetry-Transform-CLI/solution/main.c"
-)
-
 include(CTest)
+add_subdirectory(CSE4-Memory-Visualizer/starter)
+add_subdirectory(CSE4-Memory-Visualizer/solution)
+add_subdirectory(CSE5-Byte-Buffer-Workbench/starter)
+add_subdirectory(CSE5-Byte-Buffer-Workbench/solution)
+add_subdirectory(CSE6-Packet-Serializer-Deserializer/starter)
+add_subdirectory(CSE6-Packet-Serializer-Deserializer/solution)
+add_subdirectory(CSE7-Dynamic-Ring-Buffer/starter)
+add_subdirectory(CSE7-Dynamic-Ring-Buffer/solution)
+add_subdirectory(CSE8-Fixed-Size-Log-File-Reader/starter)
+add_subdirectory(CSE8-Fixed-Size-Log-File-Reader/solution)
+add_subdirectory(CSE9-Capstone-Telemetry-Transform-CLI/starter)
+add_subdirectory(CSE9-Capstone-Telemetry-Transform-CLI/solution)
 add_subdirectory(CSE3-XOR-Encoder-Decoder/starter)
 add_subdirectory(CSE3-XOR-Encoder-Decoder/solution)
 add_subdirectory(CSE2-Bitflag-Configuration-Parser/starter)

@@ -1,52 +1,63 @@
-#include <stddef.h>
-#include <stdint.h>
+#include "layout.h"
 #include <stdio.h>
 #include <stdlib.h>
-
 static char static_banner[] = "STAT";
-
-struct FrameRecord {
-    char tag;
-    uint32_t sample_count;
-    uint16_t error_code;
-    char status;
-};
-
-int main(void) {
-    struct FrameRecord stack_record = {'A', 128u, 7u, 'O'};
-    struct FrameRecord* heap_record = malloc(sizeof(*heap_record));
-    int sample_window[4] = {10, 20, 30, 40};
-
-    if (heap_record == NULL) {
-        fprintf(stderr, "heap allocation failed\n");
+static void print_layout(const char *name, size_t size, size_t alignment,
+                         const struct MemberSpan *members,
+                         const struct LayoutReport *report) {
+    printf("%s: size=%zu alignment=%zu members=%zu padding=%zu tail=%zu\n", name, size,
+           alignment, report->member_bytes, report->padding_bytes, report->tail);
+    for (size_t i = 0; i < report->count; ++i)
+        printf("  member[%zu]: offset=%zu width=%zu gap-before=%zu\n", i,
+               members[i].offset, members[i].width, report->before[i]);
+}
+int main(int argc, char **argv) {
+    (void)argv;
+    if (argc != 1) {
+        fprintf(stderr, "usage: memory-visualizer (no arguments)\n");
+        return 2;
+    }
+    const struct MemberSpan members[] = {
+        {offsetof(struct FrameRecord, tag), sizeof(char)},
+        {offsetof(struct FrameRecord, sample_count), sizeof(uint32_t)},
+        {offsetof(struct FrameRecord, error_code), sizeof(uint16_t)},
+        {offsetof(struct FrameRecord, status), sizeof(char)}};
+    struct LayoutReport report = {0};
+    struct ExperimentLayout experiment = {0};
+    enum LayoutResult base =
+        analyze_layout(members, 4, sizeof(struct FrameRecord), &report);
+    enum LayoutResult extended = describe_experiment(&experiment);
+    if (base == LAYOUT_UNFINISHED || extended == LAYOUT_UNFINISHED) {
+        fprintf(stderr,
+                "complete analyze_layout and describe_experiment in layout.c\n");
+        return 78;
+    }
+    if (base != LAYOUT_OK || extended != LAYOUT_OK) {
+        fprintf(stderr, "invalid layout report\n");
         return 1;
     }
-
-    heap_record->tag = 'H';
-    heap_record->sample_count = 256u;
-    heap_record->error_code = 3u;
-    heap_record->status = 'W';
-
-    printf("memory visualizer (starter)\n");
-    printf("static banner       : %p\n", (void*)static_banner);
-    printf("stack record        : %p\n", (void*)&stack_record);
-    printf("heap record pointer : %p\n", (void*)heap_record);
-    printf("sample_window[0]    : %p\n", (void*)&sample_window[0]);
-    printf("sample_window[1]    : %p\n", (void*)&sample_window[1]);
-    printf("sizeof(FrameRecord) : %zu\n", sizeof(struct FrameRecord));
-    printf("offset(tag)         : %zu\n", offsetof(struct FrameRecord, tag));
-    printf("offset(sample_count): %zu\n",
-           offsetof(struct FrameRecord, sample_count));
-    printf("offset(error_code)  : %zu\n",
-           offsetof(struct FrameRecord, error_code));
-    printf("offset(status)      : %zu\n", offsetof(struct FrameRecord, status));
-
-    /* TODO:
-	 * 1. Explain which objects are static, stack, and heap.
-	 * 2. Identify where padding probably appears in FrameRecord.
-	 * 3. Add one more field and inspect how the total size changes.
-	 */
-
-    free(heap_record);
-    return 0;
+    struct FrameRecord automatic_record = {'A', 128, 7, 'O'};
+    struct FrameRecord *allocated_record = malloc(sizeof(*allocated_record));
+    if (allocated_record == NULL) {
+        fprintf(stderr, "allocation failed\n");
+        return 1;
+    }
+    *allocated_record = automatic_record;
+    allocated_record->tag = 'H';
+    int sample_window[4] = {10, 20, 30, 40};
+    printf("memory visualizer\n");
+    printf("static banner     : %p (static duration)\n", (void *)static_banner);
+    printf("automatic record  : %p (automatic duration)\n", (void *)&automatic_record);
+    printf("pointer variable  : %p (automatic duration)\n", (void *)&allocated_record);
+    printf("allocated record  : %p (allocated duration)\n", (void *)allocated_record);
+    printf("array elements    : %p %p\n", (void *)&sample_window[0],
+           (void *)&sample_window[1]);
+    printf("array index gap   : %td\n", &sample_window[1] - &sample_window[0]);
+    printf("array byte stride : %zu\n", sizeof(sample_window[0]));
+    print_layout("FrameRecord", sizeof(struct FrameRecord),
+                 _Alignof(struct FrameRecord), members, &report);
+    print_layout("ExperimentRecord", experiment.size, experiment.alignment,
+                 experiment.members, &experiment.report);
+    free(allocated_record);
+    return fflush(stdout) == 0 ? 0 : 1;
 }
