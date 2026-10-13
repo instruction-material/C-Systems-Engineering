@@ -35,3 +35,4 @@ jobs:
           python3 test/native_math_contracts.py
           python3 test/native_tooling_contracts.py
           python3 test/native_inspector_contracts.py
+          python3 test/native_bitflag_contracts.py
