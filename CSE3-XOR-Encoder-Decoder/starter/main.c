@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
     uint8_t key = 0;
     if (!select_xor_key(key_text, &key)) return unfinished();
     if (xor_byte(0u, key) > UINT8_MAX) return unfinished();
-    uint8_t encoded[128];
-    uint8_t decoded[128];
+    uint8_t encoded[128] = {0};
+    uint8_t decoded[128] = {0};
     for (size_t index = 0; index < length; ++index) {
         const unsigned int transformed = xor_byte((uint8_t)message[index], key);
         if (transformed > UINT8_MAX) return unfinished();
