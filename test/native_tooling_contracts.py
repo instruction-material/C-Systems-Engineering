@@ -147,14 +147,18 @@ with tempfile.TemporaryDirectory(prefix="c17-tooling-") as directory:
     if Path(DEBUGGER).name == "gdb":
         observation = run([DEBUGGER, "--batch", "-ex", "set pagination off", "-ex", "break duration_to_ticks",
                            "-ex", "run", "-ex", "print duration_us", "-ex", "print frequency_hz",
+                           "-ex", "next", "-ex", "next", "-ex", "print product",
                            "-ex", "continue", executable], source)
         assert "duration_to_ticks" in observation and "Breakpoint" in observation
         assert re.search(r"\$\d+ = 1501\b", observation) and re.search(r"\$\d+ = 1000\b", observation), observation
+        assert re.search(r"\$\d+ = 1501000\b", observation), observation
     else:
         observation = run([DEBUGGER, "--batch", "-o", "breakpoint set --name duration_to_ticks", "-o", "run",
-                           "-o", "frame variable duration_us frequency_hz", "-o", "continue", executable], source)
+                           "-o", "frame variable duration_us frequency_hz", "-o", "next", "-o", "next",
+                           "-o", "frame variable product", "-o", "continue", executable], source)
         assert "duration_to_ticks" in observation and "stop reason = breakpoint" in observation
         assert "duration_us = 1501" in observation and "frequency_hz = 1000" in observation, observation
+        assert "product = 1501000" in observation, observation
     assert EXPECTED_TRACE in observation, observation
     counts["debuggerObservations"] += 1
 
@@ -174,5 +178,5 @@ assert counts == dict(roles=2, nativeCases=104, unfinishedCompileRejected=1,
                       completedLearnerRoles=1, objectSymbolInspections=1,
                       debuggerObservations=1, disassemblyInspections=1), counts
 print(json.dumps(dict(event="verified-c17-tooling-contracts", compiler=CC, **counts,
-                      reusedMathUtility=True, repairedOnlyMarkedLines=True,
+                      reusedMathUtility=True, repairedOnlyMarkedLines=True, widenedProductObserved=True,
                       originalSourcePreserved=True, temporaryBuildCleanup=True, log=str(LOG))))
