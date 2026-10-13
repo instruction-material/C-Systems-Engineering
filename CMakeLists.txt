@@ -17,15 +17,6 @@ function(add_cse_lab target source_file)
 endfunction()
 
 add_cse_lab(
-	cse1_hex_binary_inspector_starter
-	"CSE1-Hex-and-Binary-Inspector/starter/main.c"
-)
-add_cse_lab(
-	cse1_hex_binary_inspector_solution
-	"CSE1-Hex-and-Binary-Inspector/solution/main.c"
-)
-
-add_cse_lab(
 	cse2_bitflag_parser_starter
 	"CSE2-Bitflag-Configuration-Parser/starter/main.c"
 )
@@ -98,6 +89,8 @@ add_cse_lab(
 )
 
 include(CTest)
+add_subdirectory(CSE1-Hex-and-Binary-Inspector/starter)
+add_subdirectory(CSE1-Hex-and-Binary-Inspector/solution)
 add_subdirectory(CSE-05-cse0-setup-and-tooling/starter)
 add_subdirectory(CSE-05-cse0-setup-and-tooling/solution)
 add_subdirectory(CSE-06-unit-1-why-c-for-systems-work/starter)
