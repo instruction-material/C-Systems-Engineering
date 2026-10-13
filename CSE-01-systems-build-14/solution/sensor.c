@@ -21,7 +21,7 @@ enum FrameResult format_bits16(uint16_t raw, char *buffer, size_t capacity) {
     return FRAME_INVALID;
   char text[17];
   for (unsigned i = 0; i < 16U; ++i)
-    text[i] = ((raw >> (15U - i)) & 1U) != 0U ? '1' : '0';
+    text[i] = (((uint32_t)raw >> (15U - i)) & 1U) != 0U ? '1' : '0';
   text[16] = '\0';
   for (size_t i = 0; i < sizeof text; ++i)
     buffer[i] = text[i];
