@@ -1,70 +1,48 @@
+#include "regions.h"
 #include <stdio.h>
-#include <string.h>
-
-/*****************
-*   CONSTANTS   *
-*****************/
-
-#define LABEL_CAPACITY 32U
-#define BETA_MULTIPLIER 2
-#define SAMPLE_RECORD_COUNT 3
-
-/************
-*   TYPES   *
-************/
-
-// Store one labeled integer record
-struct record_t {
-    char label[LABEL_CAPACITY];
-    int value;
-};
-
-/*****************
-*   FUNCTIONS   *
-*****************/
-
-/**
- * @brief Summarize records with a special beta weighting rule
- *
- * @param records Records to summarize
- *
- * @param count Number of records in the array
- *
- * @return Weighted record total
- */
-int summarize_records(const struct record_t* records, int count) {
-    int total = 0;
-
-    // Process each record exactly once
-    for (int record_index = 0; record_index < count; record_index++) {
-        const struct record_t* current_record = &records[record_index];
-
-        // Apply the beta-specific weighting rule
-        if (strncmp(current_record->label, "beta",
-                    sizeof(current_record->label)) == 0) {
-            total += current_record->value * BETA_MULTIPLIER;
-        }
-        // Preserve the original value for all other labels
-        else {
-            total += current_record->value;
-        }
+int main(int argc, char **argv) {
+  (void)argv;
+  if (argc != 1) {
+    fputs("usage: region-planner\n", stderr);
+    return 2;
+  }
+  const struct RegionSpec specs[] = {{8, 4}, {3, 1}, {8, 8}};
+  struct RegionPlan plan;
+  enum RegionResult result = plan_regions(specs, 3, 24, &plan);
+  if (result == REGION_UNFINISHED) {
+    fputs("complete the region tasks\n", stderr);
+    return 78;
+  }
+  if (result != REGION_OK)
+    return 1;
+  const size_t probes[] = {0, 10, 11, 16, 24};
+  struct RegionAddress locations[5];
+  enum RegionResult status[5];
+  for (size_t i = 0; i < 5; ++i) {
+    status[i] = locate_region(&plan, probes[i], &locations[i]);
+    if (status[i] == REGION_UNFINISHED) {
+      fputs("complete the region tasks\n", stderr);
+      return 78;
     }
-
-    return total;
-}
-
-/**
- * @brief Print the summary for the sample records
- *
- * @return Program exit status
- */
-int main(void) {
-    const struct record_t records[SAMPLE_RECORD_COUNT] = {
-        {"alpha", 4},
-        {"beta", 9},
-        {"gamma", 15},
-    };
-
-    printf("summary=%d\n", summarize_records(records, SAMPLE_RECORD_COUNT));
-    return 0;
+    if (status[i] != REGION_OK && status[i] != REGION_PADDING &&
+        status[i] != REGION_OUTSIDE)
+      return 1;
+  }
+  for (size_t i = 0; i < plan.count; ++i)
+    if (printf("region %zu: offset=%zu length=%zu alignment=%zu\n", i,
+               plan.regions[i].offset, plan.regions[i].length,
+               plan.regions[i].alignment) < 0)
+      return 1;
+  if (printf("total=%zu padding=%zu\n", plan.total, plan.padding) < 0)
+    return 1;
+  for (size_t i = 0; i < 5; ++i) {
+    if (status[i] == REGION_OK) {
+      if (printf("byte %zu: region=%zu relative=%zu\n", probes[i],
+                 locations[i].index, locations[i].relative) < 0)
+        return 1;
+    } else if (printf("byte %zu: %s\n", probes[i],
+                      status[i] == REGION_PADDING ? "padding" : "outside") < 0)
+      return 1;
+  }
+  return fflush(stdout) == 0 ? 0 : 1;
 }
