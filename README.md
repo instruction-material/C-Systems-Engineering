@@ -30,6 +30,9 @@ The six named systems labs now have independent role builds, explicit learner
 tasks, complete guides and native contracts for layout, buffers, packets, owned
 FIFO queues, log files and telemetry. File tools read existing input without
 replacing it; sample creation is explicit and named output requires a new path.
+The four optional studio folders now provide sensor-field interpretation, aligned
+region planning, incremental CRC-framed decoding and ordered time-window
+aggregation, each with complete guides and distinct native contracts.
 Generated historical practice folders still require separate purpose/content
 review; the named-pack contracts do not certify every remaining source file.
 
@@ -44,8 +47,8 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Root CTest accepts eleven required references and three optional references:
-the Hex inspector, XOR transfer and fixed-size log reader. The tooling starter is excluded from the root default build. A learner's
+Root CTest accepts eleven required references and seven optional references:
+the Hex inspector, XOR transfer, fixed-size log reader and four integrative studios. The tooling starter is excluded from the root default build. A learner's
 own CTest is intentionally failing until completed. For source-contract
 verification, including independent learner completions and deliberate
 regressions, use:
@@ -59,6 +62,7 @@ python3 test/native_inspector_contracts.py
 python3 test/native_bitflag_contracts.py
 python3 test/native_xor_contracts.py
 python3 test/native_systems_contracts.py
+python3 test/native_studio_contracts.py
 ```
 
 These commands use an installed compiler and CMake, install nothing, and clean
