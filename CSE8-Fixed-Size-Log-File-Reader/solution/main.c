@@ -1,103 +1,104 @@
+#include "log.h"
+#include <inttypes.h>
+#include <limits.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-
-/****************
-*   SOLUTION   *
-****************/
-
-enum { RECORD_SIZE = 8 };
-
-static void write_u32_le(uint8_t* buffer, uint32_t value) {
-    buffer[0] = (uint8_t)(value & 0xFFu);
-    buffer[1] = (uint8_t)((value >> 8) & 0xFFu);
-    buffer[2] = (uint8_t)((value >> 16) & 0xFFu);
-    buffer[3] = (uint8_t)((value >> 24) & 0xFFu);
-}
-
-static uint32_t read_u32_le(const uint8_t* buffer) {
-    return (uint32_t)buffer[0] | ((uint32_t)buffer[1] << 8) |
-           ((uint32_t)buffer[2] << 16) | ((uint32_t)buffer[3] << 24);
-}
-
-static uint8_t checksum8(const uint8_t* buffer, size_t count) {
-    uint8_t sum = 0;
-    for (size_t i = 0; i < count; ++i) {
-        sum ^= buffer[i];
-    }
-    return sum;
-}
-
-static bool write_sample_log(const char* path) {
-    FILE* file = fopen(path, "wb");
-    uint8_t record[RECORD_SIZE];
-
+/* Supplied fixture; creating it never depends on unfinished learner functions. */
+static const uint8_t sample_log[] = {0xE9, 0x03, 0, 0, 1, 7, 42, 0xC6,
+                                     0xF0, 0x03, 0, 0, 2, 7, 44, 0xDA};
+static int create_sample(const char *path) {
+    FILE *file = fopen(path, "wbx");
     if (file == NULL) {
-        return false;
-    }
-
-    memset(record, 0, sizeof(record));
-    write_u32_le(record, 1001u);
-    record[4] = 1u;
-    record[5] = 7u;
-    record[6] = 42u;
-    record[7] = checksum8(record, 7u);
-    fwrite(record, 1u, sizeof(record), file);
-
-    memset(record, 0, sizeof(record));
-    write_u32_le(record, 1008u);
-    record[4] = 2u;
-    record[5] = 7u;
-    record[6] = 44u;
-    record[7] = checksum8(record, 7u);
-    fwrite(record, 1u, sizeof(record), file);
-
-    fclose(file);
-    return true;
-}
-
-int main(int argc, char** argv) {
-    const char* path = argc > 1 ? argv[1] : "sample.logbin";
-    uint8_t record[RECORD_SIZE];
-    FILE* file = NULL;
-    size_t read_count = 0;
-    unsigned int valid_records = 0;
-
-    if (!write_sample_log(path)) {
-        fprintf(stderr, "failed to create sample log: %s\n", path);
+        fprintf(stderr, "cannot create new sample file: %s\n", path);
         return 1;
     }
-
-    file = fopen(path, "rb");
-    if (file == NULL) {
-        fprintf(stderr, "failed to open log: %s\n", path);
+    bool ok = fwrite(sample_log, 1, sizeof(sample_log), file) == sizeof(sample_log);
+    if (fclose(file) != 0)
+        ok = false;
+    if (!ok) {
+        (void)remove(path);
+        fprintf(stderr, "sample write failed\n");
         return 1;
     }
-
-    printf("fixed-size log file reader (solution)\n");
-    while ((read_count = fread(record, 1u, sizeof(record), file)) ==
-           sizeof(record)) {
-        uint8_t expected = checksum8(record, 7u);
-        if (expected != record[7]) {
-            fprintf(stderr,
-                    "invalid checksum for record starting at timestamp %u\n",
-                    read_u32_le(record));
-            fclose(file);
-            return 1;
-        }
-
-        printf("timestamp=%u level=%u sensor=%u reading=%u checksum=%02X\n",
-               read_u32_le(record), record[4], record[5], record[6], record[7]);
-        valid_records += 1;
-    }
-
-    if (read_count != 0u) {
-        fprintf(stderr, "warning: trailing partial record of %zu byte(s)\n",
-                read_count);
-    }
-
-    printf("valid records: %u\n", valid_records);
-    fclose(file);
+    if (printf("created sample log: %s\n", path) < 0 || fflush(stdout) != 0)
+        return 1;
     return 0;
+}
+static int scan_log(FILE *input, FILE *report, size_t *valid) {
+    uint8_t bytes[LOG_RECORD_SIZE];
+    *valid = 0;
+    if (log_checksum(NULL, 0) == UINT_MAX)
+        return 78;
+    for (;;) {
+        size_t used = fread(bytes, 1, sizeof(bytes), input);
+        if (used == 0)
+            return ferror(input) ? 1 : 0;
+        if (used != sizeof(bytes))
+            return 1;
+        struct LogRecord record = {0};
+        enum LogResult result = decode_log_record(bytes, used, &record);
+        if (result == LOG_UNFINISHED)
+            return 78;
+        if (result != LOG_OK || *valid == SIZE_MAX)
+            return 1;
+        if (fprintf(report,
+                    "timestamp=%" PRIu32
+                    " level=%u sensor=%u reading=%u checksum=%02X\n",
+                    record.timestamp, (unsigned int)record.level,
+                    (unsigned int)record.sensor, (unsigned int)record.reading,
+                    (unsigned int)bytes[7]) < 0)
+            return 1;
+        ++*valid;
+    }
+}
+static bool copy_report(FILE *report) {
+    if (fflush(report) != 0 || fseek(report, 0, SEEK_SET) != 0)
+        return false;
+    int byte;
+    while ((byte = fgetc(report)) != EOF)
+        if (fputc(byte, stdout) == EOF)
+            return false;
+    return !ferror(report);
+}
+int main(int argc, char **argv) {
+    if (argc == 3 && strcmp(argv[1], "--sample") == 0)
+        return create_sample(argv[2]);
+    if (argc > 2 || (argc == 2 && strcmp(argv[1], "--sample") == 0)) {
+        fprintf(stderr, "usage: log-reader [input.logbin] | --sample new.logbin\n");
+        return 2;
+    }
+    FILE *input = argc == 1 ? tmpfile() : fopen(argv[1], "rb");
+    if (input == NULL) {
+        fprintf(stderr, "cannot open input log\n");
+        return 1;
+    }
+    int status = 0;
+    if (argc == 1 &&
+        (fwrite(sample_log, 1, sizeof(sample_log), input) != sizeof(sample_log) ||
+         fflush(input) != 0 || fseek(input, 0, SEEK_SET) != 0))
+        status = 1;
+    FILE *report = tmpfile();
+    if (report == NULL)
+        status = 1;
+    size_t valid = 0;
+    if (status == 0)
+        status = scan_log(input, report, &valid);
+    if (status == 0) {
+        if (printf("fixed-size log reader\n") < 0 || !copy_report(report) ||
+            printf("valid records: %zu\n", valid) < 0 || fflush(stdout) != 0)
+            status = 1;
+    } else if (status == 78) {
+        fprintf(stderr, "complete log_checksum and decode_log_record in log.c\n");
+    } else {
+        fprintf(stderr,
+                "log rejected after %zu valid records: checksum, truncation or I/O "
+                "failure\n",
+                valid);
+    }
+    if (report != NULL && fclose(report) != 0)
+        status = 1;
+    if (fclose(input) != 0)
+        status = 1;
+    return status;
 }

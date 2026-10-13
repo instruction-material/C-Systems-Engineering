@@ -1,59 +1,60 @@
+#include "packet.h"
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdio.h>
-
-struct Packet {
-    uint8_t version;
-    uint8_t channel;
-    uint8_t flags;
-    uint16_t reading_mv;
-};
-
-static void write_u16_le(uint8_t* buffer, uint16_t value) {
-    buffer[0] = (uint8_t)(value & 0xFFu);
-    buffer[1] = (uint8_t)((value >> 8) & 0xFFu);
-}
-
-static uint16_t read_u16_le(const uint8_t* buffer) {
-    return (uint16_t)buffer[0] | (uint16_t)((uint16_t)buffer[1] << 8);
-}
-
-static uint8_t checksum8(const uint8_t* buffer, size_t count) {
-    uint8_t sum = 0;
-    for (size_t i = 0; i < count; ++i) {
-        sum ^= buffer[i];
+/* Supplied whole-input decimal/hex parser; decimal leading zeroes stay decimal. */
+static bool reading_input(const char *text, uint16_t *out) {
+    if (text == NULL || out == NULL || text[0] == '\0')
+        return false;
+    unsigned int base = 10, value = 0;
+    size_t i = 0;
+    if (text[0] == '0' && (text[1] == 'x' || text[1] == 'X')) {
+        base = 16;
+        i = 2;
     }
-    return sum;
-}
-
-static size_t serialize_packet(const struct Packet* packet, uint8_t* buffer) {
-    buffer[0] = 0xC3u;
-    buffer[1] = packet->version;
-    buffer[2] = packet->channel;
-    buffer[3] = packet->flags;
-    write_u16_le(&buffer[4], packet->reading_mv);
-    buffer[6] = checksum8(buffer, 6);
-    return 7u;
-}
-
-int main(void) {
-    struct Packet packet = {1u, 2u, 0x05u, 3300u};
-    uint8_t buffer[7];
-    size_t used = serialize_packet(&packet, buffer);
-
-    printf("packet serializer/deserializer (starter)\n");
-    printf("serialized bytes: ");
-    for (size_t i = 0; i < used; ++i) {
-        printf("%02X ", buffer[i]);
+    if (text[i] == '\0')
+        return false;
+    for (; text[i] != '\0'; ++i) {
+        unsigned int digit;
+        if (text[i] >= '0' && text[i] <= '9')
+            digit = (unsigned int)(text[i] - '0');
+        else if (base == 16 && text[i] >= 'a' && text[i] <= 'f')
+            digit = (unsigned int)(text[i] - 'a') + 10u;
+        else if (base == 16 && text[i] >= 'A' && text[i] <= 'F')
+            digit = (unsigned int)(text[i] - 'A') + 10u;
+        else
+            return false;
+        if (digit >= base || value > (65535u - digit) / base)
+            return false;
+        value = value * base + digit;
     }
-    printf("\n");
-    printf("decoded reading : %u mV\n", read_u16_le(&buffer[4]));
-
-    /* TODO:
-	 * 1. Validate the magic byte before decoding.
-	 * 2. Recompute and verify the checksum.
-	 * 3. Print the decoded fields as a full packet report.
-	 */
-
-    return 0;
+    *out = (uint16_t)value;
+    return true;
+}
+int main(int argc, char **argv) {
+    uint16_t reading = 3300;
+    if (argc > 2 || (argc == 2 && !reading_input(argv[1], &reading))) {
+        fprintf(stderr, "usage: packet-codec [whole reading 0..65535]\n");
+        return 2;
+    }
+    struct Packet input = {1, 2, 5, reading}, decoded = {0};
+    uint8_t bytes[PACKET_SIZE] = {0};
+    size_t used = 0;
+    enum PacketResult encoded = serialize_packet(&input, bytes, sizeof(bytes), &used);
+    enum PacketResult parsed =
+        encoded == PACKET_OK ? parse_packet(bytes, used, &decoded) : encoded;
+    if (encoded == PACKET_UNFINISHED || parsed == PACKET_UNFINISHED) {
+        fprintf(stderr, "complete serialize_packet and parse_packet in packet.c\n");
+        return 78;
+    }
+    if (encoded != PACKET_OK || parsed != PACKET_OK) {
+        fprintf(stderr, "packet validation failed\n");
+        return 1;
+    }
+    printf("packet serializer/deserializer\nserialized bytes: ");
+    for (size_t i = 0; i < used; ++i)
+        printf("%02X ", (unsigned int)bytes[i]);
+    printf("\nversion: %u\nchannel: %u\nflags: 0x%02X\nreading_mv: %u\n",
+           (unsigned int)decoded.version, (unsigned int)decoded.channel,
+           (unsigned int)decoded.flags, (unsigned int)decoded.reading_mv);
+    return fflush(stdout) == 0 ? 0 : 1;
 }
