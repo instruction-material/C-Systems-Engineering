@@ -41,7 +41,8 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Root CTest accepts the six required references and the optional inspector reference. The tooling starter is excluded from the root default build. A learner's
+Root CTest accepts the seven required references and the optional inspector
+reference. The tooling starter is excluded from the root default build. A learner's
 own CTest is intentionally failing until completed. For source-contract
 verification, including independent learner completions and deliberate
 regressions, use:
@@ -53,6 +54,7 @@ python3 test/native_math_contracts.py
 python3 test/native_tooling_contracts.py
 python3 test/native_inspector_contracts.py
 python3 test/native_bitflag_contracts.py
+python3 test/native_xor_contracts.py
 ```
 
 These commands use an installed compiler and CMake, install nothing, and clean

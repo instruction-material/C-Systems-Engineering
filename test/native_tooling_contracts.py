@@ -106,7 +106,7 @@ with tempfile.TemporaryDirectory(prefix="c17-tooling-") as directory:
     counts["formatDiagnoses"] += 1
     replace_once(source / "main.c", 'printf("timer product: %d\\n", product);',
                  'printf("timer product: %" PRIu64 "\\n", product);')
-    run(["cmake", "--build", build, "--parallel", "2"], ROOT,
+    run(["cmake", "--build", build, "--clean-first", "--parallel", "2"], ROOT,
         expected="failure", contains="duration_to_ticks")
     counts["linkDiagnoses"] += 1
     target_objects = build / "CMakeFiles/cse11_tooling_starter.dir"
@@ -120,7 +120,7 @@ with tempfile.TemporaryDirectory(prefix="c17-tooling-") as directory:
     counts["objectSymbolInspections"] += 1
     replace_once(source / "engineering_math.c", "MathStatus duration_to_tick(",
                  "MathStatus duration_to_ticks(")
-    run(["cmake", "--build", build, "--parallel", "2"], ROOT)
+    run(["cmake", "--build", build, "--clean-first", "--parallel", "2"], ROOT)
     run([build / "cse11_tooling_starter_tests"], source,
         expected="failure", contains="signed integer overflow")
     counts["sanitizerDiagnoses"] += 1

@@ -1,54 +1,67 @@
+#include "input.h"
+#include "transform.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-/****************
-*   SOLUTION   *
-****************/
-
 static void dump_bytes(const uint8_t* bytes, size_t count) {
-    for (size_t i = 0; i < count; ++i) {
-        printf("%02X ", bytes[i]);
+    for (size_t index = 0; index < count; ++index) {
+        printf("%02X ", (unsigned int)bytes[index]);
     }
     printf("\n");
 }
 
+static int unfinished(void) {
+    fputs("Unfinished XOR tasks: complete the named functions in transform.c.\n", stderr);
+    return 78;
+}
+
 int main(int argc, char** argv) {
-    const char* message = argc > 1 ? argv[1] : "systems";
-    unsigned long parsed_key = argc > 2 ? strtoul(argv[2], NULL, 0) : 0x5Aul;
-    uint8_t key = (uint8_t)parsed_key;
-    uint8_t encoded[128];
-    uint8_t decoded[128];
-    size_t length = strlen(message);
-
-    if (length >= sizeof(encoded)) {
-        fprintf(stderr, "message too long for fixed demo buffer\n");
-        return 1;
+    if (argc > 3) {
+        fputs("Usage: program [message [byte-key]]\n", stderr);
+        return 2;
     }
-
-    for (size_t i = 0; i < length; ++i) {
-        encoded[i] = (uint8_t)message[i] ^ key;
-        decoded[i] = encoded[i] ^ key;
+    const char* message = argc > 1 ? argv[1] : "systems";
+    const char* key_text = argc > 2 ? argv[2] : NULL;
+    const size_t length = strlen(message);
+    if (length >= 128u) {
+        fputs("Message must contain at most 127 bytes.\n", stderr);
+        return 2;
+    }
+    uint8_t validated_key = 0x5Au;
+    if (key_text != NULL && !parse_xor_key_input(key_text, &validated_key)) {
+        fputs("Key must be a whole decimal or 0x hexadecimal byte in 0..255.\n", stderr);
+        return 2;
+    }
+    uint8_t key = 0;
+    if (!select_xor_key(key_text, &key)) return unfinished();
+    if (xor_byte(0u, key) > UINT8_MAX) return unfinished();
+    uint8_t encoded[128] = {0};
+    uint8_t decoded[128] = {0};
+    for (size_t index = 0; index < length; ++index) {
+        const unsigned int transformed = xor_byte((uint8_t)message[index], key);
+        if (transformed > UINT8_MAX) return unfinished();
+        encoded[index] = (uint8_t)transformed;
+        const unsigned int restored = xor_byte(encoded[index], key);
+        if (restored > UINT8_MAX) return unfinished();
+        decoded[index] = (uint8_t)restored;
     }
     decoded[length] = '\0';
-
-    printf("xor encoder/decoder (solution)\n");
+    printf("xor encoder/decoder\n");
     printf("message      : %s\n", message);
-    printf("key          : 0x%02X\n", key);
+    printf("key          : 0x%02X\n", (unsigned int)key);
     printf("input bytes  : ");
     dump_bytes((const uint8_t*)message, length);
     printf("encoded bytes: ");
     dump_bytes(encoded, length);
-    printf("decoded text : %s\n", decoded);
+    printf("decoded text : %s\n", (const char*)decoded);
     printf("trace        :\n");
-    for (size_t i = 0; i < length; ++i) {
-        printf("  [%zu] 0x%02X ^ 0x%02X -> 0x%02X -> 0x%02X\n", i,
-               (unsigned int)(uint8_t)message[i], key, encoded[i], decoded[i]);
+    for (size_t index = 0; index < length; ++index) {
+        printf("  [%zu] 0x%02X ^ 0x%02X -> 0x%02X -> 0x%02X\n", index,
+               (unsigned int)(uint8_t)message[index], (unsigned int)key,
+               (unsigned int)encoded[index], (unsigned int)decoded[index]);
     }
-    printf("explanation  : xor with the same key twice returns the original "
-           "byte.\n");
-
+    printf("explanation  : xor with the same key twice returns the original byte.\n");
     return 0;
 }
