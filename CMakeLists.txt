@@ -16,16 +16,6 @@ function(add_cse_lab target source_file)
 	)
 endfunction()
 
-
-add_cse_lab(
-	cse3_xor_encoder_starter
-	"CSE3-XOR-Encoder-Decoder/starter/main.c"
-)
-add_cse_lab(
-	cse3_xor_encoder_solution
-	"CSE3-XOR-Encoder-Decoder/solution/main.c"
-)
-
 add_cse_lab(
 	cse4_memory_visualizer_starter
 	"CSE4-Memory-Visualizer/starter/main.c"
@@ -81,6 +71,8 @@ add_cse_lab(
 )
 
 include(CTest)
+add_subdirectory(CSE3-XOR-Encoder-Decoder/starter)
+add_subdirectory(CSE3-XOR-Encoder-Decoder/solution)
 add_subdirectory(CSE2-Bitflag-Configuration-Parser/starter)
 add_subdirectory(CSE2-Bitflag-Configuration-Parser/solution)
 add_subdirectory(CSE1-Hex-and-Binary-Inspector/starter)
