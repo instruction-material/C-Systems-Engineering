@@ -41,8 +41,8 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Root CTest accepts the seven required references and the optional inspector
-reference. The tooling starter is excluded from the root default build. A learner's
+Root CTest accepts the six required references and the optional inspector
+and XOR references. The tooling starter is excluded from the root default build. A learner's
 own CTest is intentionally failing until completed. For source-contract
 verification, including independent learner completions and deliberate
 regressions, use:
