@@ -153,9 +153,10 @@ with tempfile.TemporaryDirectory(prefix="c17-opening-") as directory:
     assert {row["name"] for row in json.loads(inventory)["tests"]} == {
         "cse0_solution_contract", "cse1_link_solution_contract",
         "cse8_dispatch_solution_contract", "cse10_math_solution_contract",
-        "cse11_tooling_solution_contract"
+        "cse11_tooling_solution_contract",
+        "cse1_hex_binary_inspector_solution_contract"
     }, inventory
 
 print(json.dumps(dict(event="verified-c17-opening-contracts", compiler=CC,
-                      **COUNTS, rootReferenceTests=5,
+                      **COUNTS, rootReferenceTests=6,
                       temporaryBuildCleanup=True, log=str(LOG))))

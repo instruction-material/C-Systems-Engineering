@@ -20,9 +20,11 @@ Each role has an independent CMake build and documented completion contract.
 The first four untouched learners compile, then fail semantic checks until
 the named task is completed. The tooling learner intentionally starts with a
 strict compiler error; its standalone guide specifies the repair sequence.
-Reference tests pass. The other numbered projects cover
-representation, bits, memory, buffers, parsing, dynamic allocation, logs, and
-telemetry. Their behavior requires separate verification; these checks do not
+Reference tests pass. The optional `CSE1-Hex-and-Binary-Inspector` additionally
+has checked 16-bit input, independent learner tasks, and exhaustive numeric
+representation tests. It remains optional practice for the numbers lesson.
+The other numbered projects cover bits, memory, buffers, parsing, dynamic
+allocation, logs, and telemetry. Their behavior requires separate verification; these checks do not
 certify every remaining source pack.
 
 ## Root build
@@ -36,7 +38,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Root CTest accepts only the five complete references listed above. The tooling starter is excluded from the root default build. A learner's
+Root CTest accepts the five required references and the optional inspector reference. The tooling starter is excluded from the root default build. A learner's
 own CTest is intentionally failing until completed. For source-contract
 verification, including independent learner completions and deliberate
 regressions, use:
@@ -46,6 +48,7 @@ python3 test/native_opening_contracts.py
 python3 test/native_dispatch_contracts.py
 python3 test/native_math_contracts.py
 python3 test/native_tooling_contracts.py
+python3 test/native_inspector_contracts.py
 ```
 
 These commands use an installed compiler and CMake, install nothing, and clean
