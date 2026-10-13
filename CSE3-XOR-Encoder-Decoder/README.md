@@ -1,6 +1,6 @@
 # XOR Encoder Decoder
 
-This required bitwise-operations project transforms message bytes with a
+This optional bitwise-operations transfer project transforms message bytes with a
 one-byte key and applies the same operation again to restore the input. It
 follows the Bitflag Configuration Parser. Complete custom-key selection and
 one byte-level XOR function, then explain the input, encoded and decoded
