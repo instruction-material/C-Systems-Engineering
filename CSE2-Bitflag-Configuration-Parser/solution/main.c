@@ -1,78 +1,58 @@
-#include <stdbool.h>
-#include <stdint.h>
+#include "configuration.h"
+#include "input.h"
+#include <limits.h>
 #include <stdio.h>
-#include <stdlib.h>
-
-/****************
-*   SOLUTION   *
-****************/
-
-enum {
-    FLAG_LOGGING = 1u << 0,
-    FLAG_CHECKSUM = 1u << 1,
-    FLAG_ACK = 1u << 2,
-    FLAG_ENCRYPTED = 1u << 3,
-    MODE_SHIFT = 4,
-    MODE_MASK = 0x3u << MODE_SHIFT,
-    FLAG_RESERVED = 1u << 7
-};
-
-static bool has_flag(uint8_t config, uint8_t flag) {
-    return (config & flag) != 0;
-}
-
-static unsigned int read_mode(uint8_t config) {
-    return (config & MODE_MASK) >> MODE_SHIFT;
-}
-
-static const char* mode_name(unsigned int mode) {
-    switch (mode) {
-    case 0:
-        return "safe";
-    case 1:
-        return "balanced";
-    case 2:
-        return "fast";
-    case 3:
-        return "diagnostic";
-    default:
-        return "invalid";
-    }
-}
 
 static void print_binary8(uint8_t value) {
     for (int bit = 7; bit >= 0; --bit) {
-        putchar((value & (uint8_t)(1u << bit)) ? '1' : '0');
-        if (bit == 4) {
-            putchar('_');
-        }
+        putchar((((uint32_t)value >> (unsigned int)bit) & 1u) ? '1' : '0');
+        if (bit == 4) putchar('_');
     }
 }
 
 int main(int argc, char** argv) {
-    unsigned long parsed = argc > 1 ? strtoul(argv[1], NULL, 0) : 0x27ul;
-    uint8_t config = (uint8_t)parsed;
-
-    printf("bitflag configuration parser (solution)\n");
-    printf("config byte : 0x%02X\n", config);
-    printf("binary      : ");
-    print_binary8(config);
-    printf("\n");
-    printf("logging     : %s\n", has_flag(config, FLAG_LOGGING) ? "on" : "off");
-    printf("checksum    : %s\n",
-           has_flag(config, FLAG_CHECKSUM) ? "enabled" : "disabled");
-    printf("ack         : %s\n",
-           has_flag(config, FLAG_ACK) ? "required" : "optional");
-    printf("encrypted   : %s\n",
-           has_flag(config, FLAG_ENCRYPTED) ? "yes" : "no");
-    printf("mode        : %s (%u)\n", mode_name(read_mode(config)),
-           read_mode(config));
-    printf("reserved bit: %s\n",
-           has_flag(config, FLAG_RESERVED) ? "set" : "clear");
-
-    if (has_flag(config, FLAG_RESERVED)) {
-        printf("warning     : reserved bit should normally stay clear.\n");
+    uint8_t value = 0x27u;
+    if (argc > 2) {
+        fprintf(stderr, "Usage: %s [decimal-byte | 0xHEX-byte]\n", argv[0]);
+        return 2;
     }
-
+    if (argc == 2 && !parse_config_input(argv[1], &value)) {
+        fputs("Input must be complete decimal or 0x/0X hexadecimal text in 0..255.\n", stderr);
+        return 2;
+    }
+    int flags[4];
+    for (unsigned int bit = 0; bit < 4u; ++bit) {
+        flags[bit] = config_flag_enabled(value, bit);
+        if (flags[bit] < 0 || flags[bit] > 1) {
+            fputs("Unfinished configuration task: implement the three named functions.\n", stderr);
+            return 78;
+        }
+    }
+    const unsigned int mode = config_read_mode(value);
+    uint8_t logging_off = value;
+    uint8_t logging_on = value;
+    if (mode > 3u || !config_with_flag(value, 0u, false, &logging_off)
+        || !config_with_flag(value, 0u, true, &logging_on)) {
+        fputs("Unfinished configuration task: implement the three named functions.\n", stderr);
+        return 78;
+    }
+    static const char* const modes[] = {"safe", "balanced", "fast", "diagnostic"};
+    const unsigned int reserved = (unsigned int)value & 0xC0u;
+    puts("bitflag configuration parser");
+    printf("config byte : 0x%02X\n", (unsigned int)value);
+    fputs("binary      : ", stdout);
+    print_binary8(value);
+    putchar('\n');
+    printf("logging     : %s\n", flags[0] ? "on" : "off");
+    printf("checksum    : %s\n", flags[1] ? "enabled" : "disabled");
+    printf("ack         : %s\n", flags[2] ? "required" : "optional");
+    printf("encryption  : %s (flag only)\n", flags[3] ? "set" : "clear");
+    printf("mode        : %s (%u)\n", modes[mode], mode);
+    printf("reserved    : 0x%02X\n", reserved);
+    printf("logging off : 0x%02X\n", (unsigned int)logging_off);
+    printf("logging on  : 0x%02X\n", (unsigned int)logging_on);
+    if (reserved != 0u) {
+        puts("warning     : reserved bits are set; no behavior is assigned to them.");
+    }
     return 0;
 }

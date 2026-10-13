@@ -16,8 +16,11 @@ The required projects with explicit native contracts are:
 5. `CSE-09-unit-11-systems-tooling`: diagnose and repair the earlier conversion
    utility using compiler, linker, sanitizer, debugger and binary evidence.
 
+6. `CSE2-Bitflag-Configuration-Parser`: fixed byte layout, guarded flag lookup,
+   mode extraction, field-preserving flag updates and whole-input parsing.
+
 Each role has an independent CMake build and documented completion contract.
-The first four untouched learners compile, then fail semantic checks until
+All untouched learners except the tooling project compile, then fail semantic checks until
 the named task is completed. The tooling learner intentionally starts with a
 strict compiler error; its standalone guide specifies the repair sequence.
 Reference tests pass. The optional `CSE1-Hex-and-Binary-Inspector` additionally
@@ -38,7 +41,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Root CTest accepts the five required references and the optional inspector reference. The tooling starter is excluded from the root default build. A learner's
+Root CTest accepts the six required references and the optional inspector reference. The tooling starter is excluded from the root default build. A learner's
 own CTest is intentionally failing until completed. For source-contract
 verification, including independent learner completions and deliberate
 regressions, use:
@@ -49,6 +52,7 @@ python3 test/native_dispatch_contracts.py
 python3 test/native_math_contracts.py
 python3 test/native_tooling_contracts.py
 python3 test/native_inspector_contracts.py
+python3 test/native_bitflag_contracts.py
 ```
 
 These commands use an installed compiler and CMake, install nothing, and clean

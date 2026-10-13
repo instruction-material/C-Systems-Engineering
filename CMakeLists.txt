@@ -16,14 +16,6 @@ function(add_cse_lab target source_file)
 	)
 endfunction()
 
-add_cse_lab(
-	cse2_bitflag_parser_starter
-	"CSE2-Bitflag-Configuration-Parser/starter/main.c"
-)
-add_cse_lab(
-	cse2_bitflag_parser_solution
-	"CSE2-Bitflag-Configuration-Parser/solution/main.c"
-)
 
 add_cse_lab(
 	cse3_xor_encoder_starter
@@ -89,6 +81,8 @@ add_cse_lab(
 )
 
 include(CTest)
+add_subdirectory(CSE2-Bitflag-Configuration-Parser/starter)
+add_subdirectory(CSE2-Bitflag-Configuration-Parser/solution)
 add_subdirectory(CSE1-Hex-and-Binary-Inspector/starter)
 add_subdirectory(CSE1-Hex-and-Binary-Inspector/solution)
 add_subdirectory(CSE-05-cse0-setup-and-tooling/starter)
